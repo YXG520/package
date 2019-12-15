@@ -1,0 +1,9 @@
+exec resultTask 41,15,'是','胜','辅助','机器人',22,11,11,230,0.45,12000,10,10000,20,'是','是','是',11000,'洞察宝石'
+,'青龙刀','饮血剑','板甲','暴风大剑','中娅','傻逼'
+select top 1 * from tb_credit where pid=41 order by GETDATE() DESC
+
+exec resultTask 45,15,'否','胜','辅助','曙光女神',22,11,11,230,0.45,12000,10,10000,20,'是','是','是',11000,'洞察宝石'
+,'青龙刀','饮血剑','板甲','暴风大剑','中娅','好的'
+select favorate_position,total_top,total_ap,total_adc,total_sup,total_jun,total_jifen,
+wingamesInMatch,totalGamesInMatch,winrateInMatch,duanLevel,avgKda,totalcontinue5kill,totacontinue4kill,totalcontinue3kill 
+from tb_totalPlayerlist where pid=45

@@ -1,0 +1,87 @@
+USE [游戏玩家管理系统]
+GO
+/****** Object:  Trigger [dbo].[updateHeroPoolAfterInsert]    Script Date: 2019/12/15 20:02:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER trigger [dbo].[updateHeroPoolAfterInsert] on [dbo].[tb_tsingleMatchDetailRecord] after insert
+as  
+  declare @pid int --球员id
+  declare @winOrFail char(2) --比赛结果
+  declare @heroRate numeric(10,2) --玩家玩此英雄的胜率
+  declare @expertiseDegree int --玩家次英雄的熟练度
+  declare  @totalHeroScenes numeric(10,2) --玩家玩该英雄的全部场次
+  declare  @heroWinScenes numeric(10,2) --玩家玩该英雄的总胜场
+  declare  @hid int--玩家英雄池ID
+  declare @whichhero varchar(20)--玩家在本局对战中使用的英雄
+  declare @favorite_hero varchar(20)--玩家最喜欢玩的英雄
+  select @pid=pid from inserted
+  select @winOrFail=winOrFail from inserted
+  select @whichhero=whichhero from inserted
+  print '下面这是获取插入值'
+  print @pid
+  print @winOrFail
+  print @whichhero
+/* declare @pids int  declare @heroNames int  declare @HeroScenes int
+ declare  orderCursor cursor scroll for select pid,heroName,totalHeroScenes from heroPool where pid=@pid order by  totalHeroScenes desc
+ open orderCursor
+ fetch next from orderCursor into @pids,@heroNames, @HeroScenes 
+ while @@FETCH_STATUS=0
+ begin 
+ if @pids=(select heroName from heroPool where pid=@pid
+
+declare @temOrder table(Name varchar(10),number int)--声明临时表变量
+insert into @temOrder(Name,number) values('上单',@total_top),('中单',@total_ap),('下路',@total_adc),('打野',@total_jun),('辅助',@total_sup)
+set @favorate_position =(select top 1 name from @temOrder order by number desc)
+if (@favorate_position)!=null
+delete @temOrder--删除临时表变量
+else print'查询结果为空'*/
+  select  @heroWinScenes= heroWinScenes from heroPool where pid= @pid and  heroName= @whichhero
+  select  @totalHeroScenes=totalHeroScenes from heroPool where pid= @pid and  heroName= @whichhero
+  if @heroWinScenes is  Null
+  begin
+  set @heroWinScenes=0
+  end
+  if @totalHeroScenes is  Null
+  begin
+  set @totalHeroScenes=0
+  end
+  
+--计算玩家的英雄胜率
+     set @hid=(select count(*)  from heroPool  where  pid=@pid  and heroName= @whichhero)--判断英雄池是否已经存在该英雄，存在则更新，不存在该英雄则新插入，直到插入144个英雄为止
+  if @hid>0 
+	BEGIN
+		if @winOrFail='胜'
+	  begin
+		set @totalHeroScenes+=1 
+		set @heroWinScenes+=1 
+	  end
+	  else if @winOrFail='败'
+	  begin 
+	    set @totalHeroScenes+=1  
+	  end
+	   set @heroRate = @heroWinScenes/@totalHeroScenes 
+	   update heroPool set totalHeroScenes=@totalHeroScenes,heroWinScenes=@heroWinScenes,heroRate=@heroRate where hid=@hid 
+	END
+
+    if(@hid)=0
+    BEGIN
+	  if @winOrFail='胜'
+	  begin
+	    set @totalHeroScenes+=1 
+	    set @heroWinScenes+=1
+	  end
+	  else if @winOrFail='败'
+	  begin
+	    set @totalHeroScenes+=1 
+	  end
+	  	set @heroRate = @heroWinScenes/@totalHeroScenes 
+        insert into heroPool (pid,heroName,totalHeroScenes,heroWinScenes,heroRate)values(@pid,@whichhero,@totalHeroScenes,@heroWinScenes,@heroRate)
+    END
+
+ --判断玩家最喜欢玩的英雄并且插入到用户表中
+  set @favorite_hero=(select top 1 heroName from heroPool where pid=@pid order by  totalHeroScenes desc)
+  update tb_totalPlayerlist 
+  set  favorite_hero=@favorite_hero 
+  where pid=@pid

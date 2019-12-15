@@ -1,0 +1,61 @@
+USE [游戏玩家管理系统]
+GO
+/****** Object:  Trigger [dbo].[updatePlayerCredit]    Script Date: 2019/12/15 20:04:26 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ ALTER trigger  [dbo].[updatePlayerCredit] on [dbo].[tb_cremark] after insert 
+as
+--玩家的言论被插入言论表后更新玩家的信誉分信息，包括比赛的时间、所用英雄、
+--玩家的当前信誉分、玩家信誉分的变动情况以及信誉分变动的原因
+  declare @pid int --球员id
+  declare @time smalldatetime --比赛时间
+  declare @hero varchar(10)--使用的英雄
+  declare @creditchange int--当前积分的变化
+  declare @currentcreditmark int --当前信誉分
+  declare @reason  varchar(30) --变动理由
+  declare @comments varchar(300) --言论的发表
+  declare @whetherEscape char(2) --判断玩家在游戏中是否有逃跑行为
+  declare @wid int --言论的发表
+  declare @rid int --玩家参与游戏的id
+  set @pid = (select  pid from inserted ) 
+  print @pid
+  set @rid=(select  rid from inserted )
+  print @rid
+  set @currentcreditmark=( select Top 1 currentcreditmark from tb_credit where pid=@pid order by cid desc)
+  print @currentcreditmark
+  if @currentcreditmark=null 
+  set @currentcreditmark=100 
+  print @currentcreditmark
+ -- set @time =(select time from tb_totalMatchRecord where mid=(select top 1 mid from tb_tsingleMatchDetailRecord where pid=@pid order by rid ASC)) 
+ -- print @time
+  set @hero =(select whichhero from tb_tsingleMatchDetailRecord where pid=@pid and rid=@rid)
+  print @hero 
+  select @comments =comments from inserted
+  print @comments
+  set @wid= (select count(*) from  tb_cwordsDictionary where badWords like '%'+@comments+'%')
+  set @whetherEscape=(select whetherEscape from tb_tsingleMatchDetailRecord  where rid=@rid)
+  print  @whetherEscape
+  print @wid
+  if  (@wid>0) or (@whetherEscape='是') 
+  begin
+    set @creditchange=-10
+    set @reason='该玩家在游戏中存在辱骂他人或逃跑挂机行为'
+  end
+  else if (@wid<=0) and (@whetherEscape='否') 
+  begin 
+    set @creditchange=10
+	set @reason='该玩家在游戏中行为正常'
+  end
+   set @currentcreditmark +=@creditchange
+   print @currentcreditmark
+  if @currentcreditmark>100
+  begin
+	set @currentcreditmark=100
+  end
+  if @currentcreditmark<0
+  begin
+    set @currentcreditmark=0
+  end
+    insert into  tb_credit (pid,time,hero,creditchange,currentcreditmark,reason) values(@pid,GETDATE(),@hero,@creditchange,@currentcreditmark,@reason)

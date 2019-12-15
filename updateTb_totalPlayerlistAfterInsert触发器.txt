@@ -1,0 +1,144 @@
+USE [游戏玩家管理系统]
+GO
+/****** Object:  Trigger [dbo].[updateTb_totalPlayerlistAfterInsert]    Script Date: 2019/12/15 20:03:45 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER trigger [dbo].[updateTb_totalPlayerlistAfterInsert]  on [dbo].[tb_tsingleMatchDetailRecord] after insert 
+as
+--比赛结果插入后更新玩家的总信息，包括平均kda，总积分，段位的情况，平均胜率
+  declare @pid int --球员id
+  declare @winOrFail char(2) --比赛结果
+  declare @single_kda float --本场kda
+  declare @ifcontinue3kill char(2) --玩家本场游戏的三杀次数
+  declare @ifcontinue4kill char(2)--玩家本场的四杀次数
+  declare @ifcontinue5kill char(2) --玩家本场的五杀次数p
+  declare @whichposition varchar(10)--玩家本场的位置
+  declare @whichhero varchar(20)--玩家本场的英雄
+  declare @single_jifen varchar(10)--玩家本场的获得的积分
+  declare @total_kda numeric(10,2) --总kda
+  declare @avg_kda numeric(10,2) --平均kda
+  declare @total_jifen numeric(10,2) --玩家总积分
+  declare @totalGamesInMatch numeric(10,2) --玩家匹配总场数
+  declare @wingamesInMatch numeric(10,2) --玩家匹配总胜场
+  declare @winrateInMatch numeric(10,2)--玩家的匹配胜率 
+  declare @duanLevel varchar(10)--玩家的段位
+  declare @totalcontinue3kill int --玩家总共的三杀次数
+  declare @totalcontinue4kill int --玩家总共的四杀次数
+  declare @totalcontinue5kill int --玩家总共的五杀次数
+  declare @favorate_position varchar(10)--玩家最喜欢玩的位置
+  declare @total_top int --在玩家所有对局中选择上单位置的次数
+  declare @total_ap int --玩家对局中选择中单单位置的次数
+  declare @total_adc int --玩家对局中选择下路位置的次数
+  declare @total_jun int --玩家对局中选择打野位置的次数
+  declare @total_sup int --玩家对局中选择辅助位置的次数
+  --从临时表中获取数据
+  select @pid=pid from inserted
+  select @winOrFail=winOrFail from inserted
+  select @single_kda=kda from inserted
+  select @ifcontinue3kill=ifthreekill from inserted
+  print @ifcontinue3kill
+  select @ifcontinue4kill=iffourkill from inserted
+  print @ifcontinue4kill
+  select @ifcontinue5kill=iffivekill from inserted
+  print @ifcontinue5kill
+  select @whichposition=whichposition from inserted
+  select @single_jifen=single_jifen from inserted
+  print @single_jifen
+  select @whichhero=whichHero from inserted
+  --从玩家总表中获取数据
+  select @duanLevel=duanLevel from tb_totalPlayerlist where pid=@pid
+  select @total_jifen=total_jifen from tb_totalPlayerlist where pid=@pid
+  if @total_jifen=null set @total_jifen=0
+  select @totalGamesInMatch=totalGamesInMatch from tb_totalPlayerlist where pid=@pid
+  if @totalGamesInMatch is null set @totalGamesInMatch=0
+  select @wingamesInMatch=wingamesInMatch from tb_totalPlayerlist where pid=@pid
+  if @wingamesInMatch is null set @wingamesInMatch=0
+  select @total_kda=total_kda from tb_totalPlayerlist where pid=@pid
+  print @total_kda
+  if @total_kda is null set @total_kda=0
+  print '这是求总kda'
+  print @total_kda
+  select @total_top=total_top,@total_ap=total_ap,@total_adc=total_adc,@total_jun=total_jun,@total_sup=total_sup 
+  from tb_totalPlayerlist where pid=@pid 
+  if @total_top is null set @total_top=0
+  if @total_ap is null set @total_ap=0
+  if @total_adc is null set @total_adc=0
+  if @total_jun is null set @total_jun=0 
+  if @total_sup is null set @total_sup=0
+  set @totalcontinue3kill= (select  totalcontinue3kill  from tb_totalPlayerlist where pid=@pid)
+  set @totalcontinue4kill=(select totacontinue4kill  from tb_totalPlayerlist where pid=@pid)
+  set @totalcontinue5kill=(select totalcontinue5kill from tb_totalPlayerlist where pid=@pid)
+  if @totalcontinue3kill is null
+  begin
+    set @totalcontinue3kill=0 
+  end
+  if @totalcontinue4kill is null 
+  begin
+    set @totalcontinue4kill=0
+  end
+  if @totalcontinue5kill is null 
+  begin
+    set @totalcontinue5kill=0
+  end
+  --计算玩家的胜率
+  set @total_jifen +=@single_jifen
+  print @total_jifen
+  set @avg_kda=(@total_kda+@single_kda)/(@totalGamesInMatch)
+  set @totalGamesInMatch+=1
+  if @winOrFail='胜' 
+  begin
+  set @wingamesInMatch+=1
+  end
+  set @winrateInMatch=@wingamesInMatch/(@totalGamesInMatch+1)
+  print '下面是计算胜率'
+  print @winrateInMatch
+  if @ifcontinue3kill='是' 
+  begin 
+    set @totalcontinue3kill+=1 
+  end
+  if @ifcontinue4kill='是'
+  begin
+    set @totalcontinue4kill+=1 
+  end
+  if @ifcontinue5kill='是' 
+  begin
+    set @totalcontinue5kill+=1 
+  end
+  if @whichposition='上单' set @total_top+=1
+  if @whichposition='中单' set @total_ap+=1
+  if @whichposition='下路' set @total_adc+=1
+  if @whichposition='打野' set @total_jun+=1
+  if @whichposition='辅助' set @total_sup+=1
+  --行转列判断玩家最喜欢玩的位置
+  declare @temOrder table(Name varchar(10),number int)--声明临时表变量
+  insert into @temOrder(Name,number) values
+  ('上单',@total_top),
+  ('中单',@total_ap),
+  ('下路',@total_adc),
+  ('打野',@total_jun),
+  ('辅助',@total_sup)
+  set @favorate_position =(select top 1 name from @temOrder order by number desc)
+  if (@favorate_position)!=null
+  delete @temOrder--删除临时表变量
+  else print'查询结果为空'
+  --方法一
+  set @duanLevel=
+  case
+      when(@total_jifen between 0 and 500 ) then '坚韧黑铁'
+      when(@total_jifen between 500 and 1000 ) then '英勇青铜'
+      when(@total_jifen between 1000 and 1500) then '不屈白银'
+      when(@total_jifen between 1500 and 2000 ) then '荣耀黄金'
+      when(@total_jifen between 2000 and 2500) then '华贵铂金'
+      when(@total_jifen  between 2500 and 3000  ) then '璀璨钻石'
+      when(@total_jifen between 3000 and 3500 ) then '超凡大师'
+      when(@total_jifen between 3500 and 4000 ) then '傲视宗师'
+      when(@total_jifen between 4000 and 4500) then '最强王者'
+  end 
+  update tb_totalPlayerlist
+                          set totalGamesInMatch=@totalGamesInMatch,wingamesInMatch=@wingamesInMatch,winrateInMatch=@winrateInMatch,
+                          duanLevel=@duanLevel,avgKda=@avg_kda,totalcontinue5kill=@totalcontinue5kill,totacontinue4kill=@totalcontinue4kill,
+                          totalcontinue3kill=@totalcontinue3kill,total_jifen=@total_jifen,total_kda=@total_kda,total_top=@total_top,
+                          total_ap=@total_ap,total_adc=@total_adc,total_jun=@total_jun,total_sup=@total_sup,favorate_position=@favorate_position
+where pid=@pid

@@ -1,0 +1,100 @@
+USE [游戏玩家管理系统]
+GO
+/****** Object:  StoredProcedure [dbo].[matchTask]    Script Date: 2019/12/2 19:50:11 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER procedure [dbo].[matchTask] @pid int
+as
+  declare @position varchar(10)--位置
+  declare @total_jifen int           --积分id
+  declare @red_top int         --红方上单ID
+  declare @red_ap int          --红方中单ID
+  declare @red_adc int         --红方下路ID
+  declare @red_jun int         --红方打野ID
+  declare @red_sup int         --红方辅助ID
+  declare @blue_top int        --红方上单ID
+  declare @blue_ap int         --红方中单ID
+  declare @blue_adc int        --红方上单ID
+  declare @blue_jun int        --红方上单ID
+  declare @blue_sup int        --红方上单ID
+  if (select tb_credit.currentcreditmark  from tb_credit where pid=@pid)>70
+  begin
+   select @position=position from tb_tactivePlayerlist where pid= @pid
+  select @total_jifen=total_jifen from tb_totalPlayerlist where pid= @pid
+  end
+ else set @position=null print '您的信誉分低于70分，请5分钟后再请求'
+  if @position=null
+    print '请先选择位置'
+  if @position='上单'
+    set @red_top=@pid
+    select TOP 1 @red_ap=tb_tactivePlayerlist.pid from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='中单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_adc=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='下路'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_jun=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='打野'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_sup=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='辅助' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_top=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='上单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_ap=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='中单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_adc=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='下路' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_jun=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='打野' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_sup=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='辅助' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+  if @position='中单'
+    set @red_ap=@pid
+    select TOP 1 @red_top=tb_tactivePlayerlist.pid from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='上单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_adc=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='下路'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_jun=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='打野'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_sup=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='辅助' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_top=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='上单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_ap=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='中单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_adc=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='下路' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_jun=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='打野' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_sup=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='辅助' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+
+  if @position='下路'
+    set @red_adc=@pid
+    select TOP 1 @red_top=tb_tactivePlayerlist.pid from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='上单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_ap=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='中单'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_jun=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='打野'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_sup=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='辅助' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_top=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='上单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_ap=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='中单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_adc=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='下路' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_jun=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='打野' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_sup=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='辅助' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+  if @position='打野'
+    set @red_jun=@pid
+    select TOP 1 @red_top=tb_tactivePlayerlist.pid from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='上单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_ap=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='中单'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_adc=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='下路'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_sup=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='辅助' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_top=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='上单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_ap=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='中单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_adc=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='下路' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_jun=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='打野' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_sup=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='辅助' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+  if @position='辅助'
+    set @red_sup=@pid
+   select TOP 1 @red_top=tb_tactivePlayerlist.pid from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='上单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_ap=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='中单'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_adc=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='下路'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @red_jun=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='打野' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_top=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='上单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_ap=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='中单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_adc=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='下路' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_jun=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='打野' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+    select TOP 1 @blue_sup=tb_tactivePlayerlist.pid  from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='辅助' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+
+ --当红队队员与蓝队队员重复时，蓝队应该重新查找
+   
+   while @red_top=@blue_top
+     select TOP 1 @blue_top=tb_tactivePlayerlist.pid from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='上单' and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+   while @red_ap=@blue_ap
+     select TOP 1 @blue_ap=tb_tactivePlayerlist.pid from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='中单'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+   while @red_adc=@blue_adc
+     select TOP 1 @blue_adc=tb_tactivePlayerlist.pid from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='下路'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+   while @red_jun=@blue_jun
+     select TOP 1 @blue_jun=tb_tactivePlayerlist.pid from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='打野'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+   while @red_sup=@blue_sup
+     select TOP 1 @blue_sup=tb_tactivePlayerlist.pid from tb_tactivePlayerlist,tb_totalPlayerlist,tb_credit where position='辅助'and tb_credit.currentcreditmark >70 and tb_totalPlayerlist.total_jifen between @total_jifen-200 and @total_jifen+200 order by NEWID()
+   insert into tb_totalMatchRecord (red_top,red_ap,red_adc,red_jun,red_sup,blue_top,blue_ap,blue_adc,blue_jun,blue_sup) 
+     values(@red_top,@red_ap,@red_adc,@red_jun,@red_sup,@blue_top,@blue_ap,@blue_adc,@blue_jun,@blue_sup)
